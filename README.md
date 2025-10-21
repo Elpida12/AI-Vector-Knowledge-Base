@@ -41,38 +41,40 @@ Harvests Python repositories from GitHub using their API with time window, rate 
 
 ### CLI Arguments  
 ```text
-usage: GitHub_Harvester.py [-h] [--github-token GITHUB_TOKEN] [--min-stars MIN_STARS]  
-                            [--language LANGUAGE] [--per-page PER_PAGE]  
-                            [--max-pages MAX_PAGES] [--start-days-ago START_DAYS_AGO]  
-                            [--window-min-seconds WINDOW_MIN_SECONDS]  
-                            [-- window-overlap_seconds WINDOW_OVERLAP_SECONDS]  
-                            [--sleep-between-cycles SLEEP_CYCLES]  
-                            [-- sleep-core-api SLEEP_CORE]  
-                            [--download-workers DOWNLOAD_WORKERS]  
-                            [-- max-files-per_repo MAX_FILES_PER_REPO]  
-                            [--repos-dir REPOS_DIR] [--dry-run DRY_RUN]  
-                            [--persistent-skip-repos PERSISTENT_SKIP_REPOS]  
-                            [--exclude-path-regex EXCLUDE_PATH_REGEX]  
+usage: GitHub_Harvester.py [-h]  
+                          [--GITHUB_API_KEY TOKEN]  
+                          [--MIN_STARS INT] [--PER_PAGE INT] [--MAX_PAGES INT]  
+                          [--START_DAYS_AGO INT]  
+                          [--WINDOW_MIN_SEC INT] [--WINDOW_OVERLAP_SEC INT]  
+                          [--SLEEP_CYCLES FLOAT] [--SLEEP_CORE FLOAT]  
+                          [--SEARCH_RPM_SOFT_MAX FLOAT]  
+                          [--MAX_FILES_PER_REPO INT]  
+                          [--DOWNLOAD_WORKERS INT]  
+                          [--REPOS_DIR PATH] [--STATE_DIR PATH]  
+                          [--DRY_RUN BOOL] [--PERSISTENT_SKIP_REPOS BOOL]  
+                          [--EXCLUDE_PATH_REGEX REGEX]
 ```
 
-### positional arguments:  
+### positional arguments   
 ```text
-  --github_token GITHUB_TOKEN                     GitHub personal access token  
-  --min-stars MIN_STARS                           Minimum stars filter  
-  --language LANGUAGE                             Language filter  
-  -- per_page PER_PAGE                            Results per page  
-  -- max_pages MAX_PAGES                          Maximum pages  
-  --start_days_ago START_DAYS_AGO                 Days ago  
-  --window_min_seconds WINDOW_MIN_SECONDS         Min window seconds  
-  --window_overlap_seconds WINDOW_OVERLAP_SECONDS overlap  
-  --sleep_between_cycles SLEEP_CYCLES             Sleep between cycles  
-  -- sleep_core_api SLEEP_CORE                    Core API sleep  
-  --download_workers DOWNLOAD_WORKERS             Workers  
-  --max_files_per_repo MAX_FILES_PER_REPO         Max files  
-  --repos_dir REPOS_DIR                           Output directory  
-  --dry-run DRY_RUN                               Dry run  
-  --persistent_skip_repos PERSISTENT_SKIP_REPOS   Persist skip  
-  --exclude_path_regex EXCLUDE_PATH_REGEX Exclude regex  
+--GITHUB_API_KEY TOKEN                          GitHub personal access token.  
+--MIN_STARS INT (default: 100)                  Minimum GitHub star count required for a repo to be downloaded.  
+--PER_PAGE INT (default: 100)                   Repositories per page (max 100).  
+--MAX_PAGES INT (default: 10)                   Maximum number of result pages per time window.  
+--START_DAYS_AGO INT (default: 30)              If no prior state exists, start searching from “now − X days.”  
+--WINDOW_MIN_SEC INT (default: 150)             Minimum time‑window length for each search cycle.  
+--WINDOW_OVERLAP_SEC INT (default: 30)          Overlap added to window boundaries to avoid misses.  
+--SLEEP_CYCLES FLOAT (default: 15.0)            Pause between full search cycles.  
+--SLEEP_CORE FLOAT (default: 0.2)               Small sleep between non‑search API requests.  
+--SEARCH_RPM_SOFT_MAX FLOAT                     Limit for search requests per minute.  
+--MAX_FILES_PER_REPO INT (default: 1000)        Limit on how many Python files to download per repository.  
+--DOWNLOAD_WORKERS INT (default: 10)            Number of parallel download workers.  
+--REPOS_DIR PATH (default: Data/python_files)   Destination directory for downloaded repo files.  
+--STATE_DIR PATH (default: state)               Directory for state files (search_state.json, processed_repos.txt).  
+--DRY_RUN BOOL (default: false)                 Simulate downloads without writing files. Useful for checks without risking changes in your code base.  
+--PERSISTENT_SKIP_REPOS BOOL (default: true)    Skip repeats across runs.  
+--EXCLUDE_PATH_REGEX REGEX                      Case‑insensitive regex to exclude repo paths (e.g., '^(tests?|docs|examples?)/'). 
+
 ```
 
 
@@ -94,53 +96,64 @@ Filters Python source files, removes comments/docstrings optionally, ensures syn
 
 ```text
 CLI Args
-  usage: Cleaner.py [-h] [--input INPUT]  
-                            [--output OUTPUT]  
-                            [--exclude-dir EXCLUDE_DIR]  
-                            [--keep-docstrings]  
-                            [--top-level-only]  
-                            [--max-comment-ratio MAX_COMMENT_RATIO]  
-                            [--min-chars MIN_CHARS]  
-                            [--errors {strict,ignore.replace}]  
-                            --tab-width TAB_WIDTH  
-                            [--on-tokenize-error {skip fallback keep}]  
-                            [--min-lines MIN_LINES]  
-                            [--max-lines MAX_LINES]  
-                            [--require-docstrings]  
-                            [--use-ruff]  
-                            [--ruff-enforce]  
-                            [--state-db STATE_DB]  
-                            [-- seed-manifest SEED_MANIFEST]  
-                            [--scan-output SCAN_OUTPUT]  
-                            [--report-json REPORT_JSON]  
-                            [--report-csv REPORT_CSV]  
-                            [--workers WORKERS]  
+usage: Cleaner.py [-h]  
+                  [--input INPUT]  
+                  [--output OUTPUT]  
+                  [--exclude-dir EXCLUDE_DIR]  
+                  [--keep-docstrings | --no-keep-docstrings]  
+                  [--top-level-only | --allow-nested]  
+                  [--max-comment-ratio FLOAT]  
+                  [--min-chars INT]  
+                  [--errors {strict,ignore,replace}]  
+                  [--tab-width INT]  
+                  [--on-tokenize-error {skip,fallback,keep}]  
+                  [--min-lines INT]  
+                  [--max-lines INT]  
+                  [--require-docstrings]  
+                  [--use-ruff] [--ruff-enforce]  
+                  [--state-db PATH]  
+                  [--seed-manifest CSV]  
+                  [--scan-output]  
+                  [--report-json PATH]  
+                  [--report-csv PATH]  
+                  [--workers INT] 
 ```
 
 
-### positional arguments:  
+### positional arguments  
 ```text
-  --input INPUT                  Input directory  
-  --output OUTPUT                Output directory  
-  --exclude_dir EXCLUDE_DIR      Exclude directories  
-  --keep-docstrings              Keep docstrings  
-  --top-level-only               Top level defs  
-  --max-comment_ratio MAX_COMMENT_RATIO Max comment ratio  
-  --min_chars MIN_CHARS          Min chars  
-  --errors {strict ignore replace} Encoding errors  
-  --tab_width TAB_WIDTH          Tab width  
-  --on_tokenize_error {skip fallback keep} tokenize
-  -- min-lines MIN_LINES         Minimum lines  
-  --max_lines MAX_LINES          Maximum lines  
-  --require-docstrings           Require docstrings  
-  --use_ruff                     Use ruff  
-  --ruff_enforce                 Ruff enforce  
-  --state_db STATE_DB            SQLite state  
-  --seed_manifest SEED_MANIFEST Seed manifests  
-  --scan_output SCAN_OUTPUT      Scan output  
-  --report_json REPORT_JSON      JSON audit  
-  --report_csv REPORT_CSV        CSV audit  
-  --workers WORKERS              Workers  
+# Directory
+--input INPUT                             Input directory (default Data/python_files)  
+--output OUTPUT                           Output directory for cleaned chunks (default cleaned_codebase_quality)  
+--exclude-dir EXCLUDE_DIR                 Directory name to exclude; can repeat (default: test,.github,__pycache__,examples,docs)  
+
+# Quality controls  
+--keep-docstrings                         Keep docstrings (default True)  
+--no-keep-docstrings                      Disable keeping docstrings (sets keep_docstrings=False)  
+--top-level-only                          Split only top-level defs (default True)  
+--allow-nested                            Allow nested defs (sets top_level_only=False)  
+--max-comment-ratio FLOAT                 Skip files with removed-char ratio > value; <0 disables (default -1)  
+--min-chars INT                           Legacy min non-whitespace chars per chunk (adds to line gates)  
+--errors {strict,ignore,replace}          How to handle read decoding errors (default strict)  
+--tab-width INT                           Detab width when normalizing leading indentation (default 4)  
+--on-tokenize-error {skip,fallback,keep}  Behavior if tokenization fails (default skip)  
+--min-lines INT                           Min lines per emitted chunk (default 5)  
+--max-lines INT                           Max lines per chunk (0=disable; default 1200)  
+--require-docstrings                      Require a docstring per function/class  
+--use-ruff                                Run ruff (E,F) on chunks if available  
+--ruff-enforce                            Skip chunks that fail ruff (requires --use-ruff)  
+
+# State & dedupe  
+--state-db PATH                           SQLite file for persistent chunk-hash state  
+--seed-manifest CSV                       Seed known hashes from prior CSV manifest(s); can repeat  
+--scan-output                             Scan current OUTPUT dir to seed existing chunk hashes  
+
+# Reporting  
+--report-json PATH                        Write audit counters to JSON  
+--report-csv PATH                         Write audit counters to CSV  
+
+# Parallelism  
+--workers INT                             Worker processes (0=all cores; default 0)  
 ```
 
 
@@ -159,10 +172,14 @@ Converts cleaned Python chunks into an AI vector database with embeddings, categ
 
 ### CLI Arguments  
 ```text
-usage: Create_Codebase.py [-h] [--input INPUT] [--output OUTPUT] [--batch-size BATCH_SIZE]
+usage: Create_Codebase.py [-h]  
+                          [--input INPUT]  
+                          [--output OUTPUT]  
+                          [--batch-size INT]  
+                          [--max-embeddings INT]  
 ```
 
-### positional arguments:  
+### positional arguments 
 ```text
  --input INPUT                  input directory  
  --output OUTPUT                output directory  
